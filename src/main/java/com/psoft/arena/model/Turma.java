@@ -7,6 +7,14 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.UniqueConstraint;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Turma {
@@ -31,6 +39,13 @@ public class Turma {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusTurma status;
+
+    @ManyToMany
+    @JoinTable(name = "turma_estudante",
+            joinColumns = @JoinColumn(name = "turma_id"),
+            inverseJoinColumns = @JoinColumn(name = "estudante_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"turma_id", "estudante_id"}))
+    private Set<Estudante> estudantes = new HashSet<>();
 
     protected Turma() {
         // exigido pelo JPA
@@ -57,6 +72,20 @@ public class Turma {
     public boolean isAtiva() {
         return this.status == StatusTurma.ATIVA;
     }
+
+    public boolean possuiEstudante(Estudante estudante) {
+        return estudantes.stream().anyMatch(e -> e.getMatricula().equals(estudante.getMatricula()));
+    }
+
+    public void adicionarEstudante(Estudante estudante) {
+        estudantes.add(estudante);
+    }
+
+    public void removerEstudante(Estudante estudante) {
+        estudantes.removeIf(e -> e.getMatricula().equals(estudante.getMatricula()));
+    }
+
+    public Set<Estudante> getEstudantes() { return Collections.unmodifiableSet(estudantes); }
 
     public Long getId() { return id; }
     public String getNome() { return nome; }
