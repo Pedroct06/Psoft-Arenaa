@@ -1,0 +1,13 @@
+/target/
+
+.DS_Store
+
+._*
+
+/data/
+*.mv.db
+*.trace.db
+
+.env
+.env.*
+!.env.example
