@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController 
-@RequestMapping("/estudante/{matricula}/atividades")
+@RequestMapping("/estudantes/{matricula}/atividades")
 @Tag(name = "consulta de atividades", description = "Atividades vistas pelo estudante")
 public class EstudanteAtividadeController {
     private final AtividadeConsultaService service;

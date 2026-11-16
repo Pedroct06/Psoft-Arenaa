@@ -9,8 +9,9 @@ import com.psoft.arena.model.Atividade;
 import com.psoft.arena.model.Estudante;
 import com.psoft.arena.repository.AtividadeRepository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
-
+@Service
 public class AtividadeConsultaService {
     
     private final AtividadeRepository atividadeRepository;
