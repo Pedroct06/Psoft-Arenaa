@@ -85,10 +85,10 @@ class SubmissaoIntegrationTest {
         .file(v1)
         .param("estudanteId", ana.getId().toString()))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").exists())
+        .andExpect(jsonPath("$.submissaoId").exists())
         .andExpect(jsonPath("$.versao").value(1))
         .andExpect(jsonPath("$.status").exists())
-        .andExpect(jsonPath("$.dataHoraSubmissao").exists())
+        .andExpect(jsonPath("$.dataHora").exists())
         .andExpect(jsonPath("$.mensagem").value("Solução recebida com sucesso! Versão 1 registrada."));
 
     MockMultipartFile v2 = arquivoJava("Solucao.java", "public class Solucao { int x = 1; }");

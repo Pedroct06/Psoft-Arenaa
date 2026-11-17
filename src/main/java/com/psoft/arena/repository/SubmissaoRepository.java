@@ -9,4 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface SubmissaoRepository extends JpaRepository<Submissao, Long> {
   int countByEstudanteIdAndAtividadeId(Long estudanteId, Long atividadeId);
   List<Submissao> findByEstudanteIdAndAtividadeIdOrderByVersaoAsc(Long estudanteId, Long atividadeId);
+  java.util.Optional<Submissao> findByIdAndEstudanteIdAndAtividadeId(Long id, Long estudanteId, Long atividadeId);
 }

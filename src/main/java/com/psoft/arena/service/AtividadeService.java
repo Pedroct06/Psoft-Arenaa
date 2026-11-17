@@ -52,7 +52,13 @@ public class AtividadeService {
                 new RecursoNaoEncontradoException("Atividade com ID " + id + " não encontrada."));
     }
     @Transactional(readOnly = true)
-    public AtividadeResponseDTO buscarPorId(Long id) { return new AtividadeResponseDTO(carregar(id)); }
+    public Atividade buscarEntidadePorId(Long id) {
+        return carregar(id);
+    }
+    @Transactional(readOnly = true)
+    public AtividadeResponseDTO buscarPorId(Long id) {
+        return new AtividadeResponseDTO(carregar(id));
+    }
     @Transactional(readOnly = true)
     public List<AtividadeResponseDTO> listar() {
         return repository.findAll().stream().map(AtividadeResponseDTO::new).toList();
@@ -62,7 +68,6 @@ public class AtividadeService {
         Atividade atividade = carregar(id); atividade.encerrar();
         return new AtividadeResponseDTO(repository.save(atividade));
     }
-    // Chamar dentro da transação que salva a submissão, quando essa US existir.
     @Transactional(readOnly = true)
     public Atividade garantirAtividadeAberta(Long id) {
         Atividade atividade = carregar(id);

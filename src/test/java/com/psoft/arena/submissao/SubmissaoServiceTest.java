@@ -1,5 +1,7 @@
 package com.psoft.arena.submissao;
 
+import com.psoft.arena.service.SubmissaoRecebidaEvent;
+import com.psoft.arena.service.AcompanhamentoSubmissaoService;
 import com.psoft.arena.dto.AtividadeResponseDTO;
 import com.psoft.arena.dto.SubmissaoResponseDTO;
 import com.psoft.arena.model.Estudante;
@@ -16,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -33,6 +36,10 @@ class SubmeterSolucaoServiceTest {
   AtividadeService atividadeService;
   @Mock
   TurmaEstudanteService turmaEstudanteService;
+  @Mock
+  AcompanhamentoSubmissaoService acompanhamentoService;
+  @Mock
+  ApplicationEventPublisher eventPublisher;
   @InjectMocks
   SubmeterSolucaoService service;
 
@@ -82,6 +89,8 @@ class SubmeterSolucaoServiceTest {
     assertNotNull(r.status());
     assertNotNull(r.dataHora());
     assertEquals("Solução recebida com sucesso! Versão 1 registrada.", r.mensagem());
+    verify(acompanhamentoService).registrarEstadoInicial(any(Submissao.class));
+    verify(eventPublisher).publishEvent(any(SubmissaoRecebidaEvent.class));
   }
 
   @Test
@@ -99,6 +108,8 @@ class SubmeterSolucaoServiceTest {
 
     assertEquals(3, r.versao());
     assertEquals("Solução recebida com sucesso! Versão 3 registrada.", r.mensagem());
+    verify(acompanhamentoService).registrarEstadoInicial(any(Submissao.class));
+    verify(eventPublisher).publishEvent(any(SubmissaoRecebidaEvent.class)); 
   }
 
   @Test
