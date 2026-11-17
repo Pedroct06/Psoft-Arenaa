@@ -2,6 +2,7 @@ package com.psoft.arena.model;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Entity
 public class Atividade {
@@ -45,4 +46,6 @@ public class Atividade {
     public Problema getProblema() { return problema; }
     public Estrategia getEstrategia() { return estrategia; }
     public ConfiguracaoLlm getConfiguracaoLlm() { return configuracaoLlm; }
+    // Por enquanto só o LLM padrão; os adicionais entram na US18
+    public List<ConfiguracaoLlm> getModelosAvaliacao() { return List.of(configuracaoLlm); }
 }
