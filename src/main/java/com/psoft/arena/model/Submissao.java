@@ -1,5 +1,6 @@
 package com.psoft.arena.model;
 
+import com.psoft.arena.model.estado.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -33,6 +34,9 @@ public class Submissao {
     @Column(nullable = false)
     private StatusSubmissao status;
 
+    @Transient
+    private EstadoSubmissao estado;
+
     protected Submissao() {
     }
 
@@ -43,23 +47,41 @@ public class Submissao {
         this.codigoFonte = codigoFonte;
         this.dataHoraSubmissao = LocalDateTime.now();
         this.status = StatusSubmissao.SUBMETIDA;
+        this.estado = new EstadoSubmetida();
+    }
+
+    @PostLoad
+    private void restaurarEstado() {
+        this.estado = switch (status) {
+            case SUBMETIDA -> new EstadoSubmetida();
+            case EM_FILA -> new EstadoEmFila();
+            case PROCESSANDO -> new EstadoProcessando();
+            case CONCLUIDA -> new EstadoConcluida();
+            case FALHA -> new EstadoFalha();
+        };
     }
 
     public void alterarStatus(StatusSubmissao novoStatus) {
-        boolean transicaoValida = switch (status) {
-            case SUBMETIDA -> novoStatus == StatusSubmissao.EM_FILA;
-            case EM_FILA -> novoStatus == StatusSubmissao.PROCESSANDO;
-            case PROCESSANDO -> novoStatus == StatusSubmissao.CONCLUIDA
-                    || novoStatus == StatusSubmissao.FALHA;
-            case CONCLUIDA, FALHA -> false;
-        };
-
-        if (!transicaoValida) {
-            throw new IllegalStateException(
-                    "Transição de status inválida: " + status + " para " + novoStatus);
+        if (estado == null) {
+            restaurarEstado();
         }
+        estado.alterar(this, novoStatus);
+    }
 
-        this.status = novoStatus;
+    public void definirEstado(EstadoSubmissao novoEstado) {
+        this.estado = novoEstado;
+
+        if (novoEstado instanceof EstadoSubmetida) {
+            this.status = StatusSubmissao.SUBMETIDA;
+        } else if (novoEstado instanceof EstadoEmFila) {
+            this.status = StatusSubmissao.EM_FILA;
+        } else if (novoEstado instanceof EstadoProcessando) {
+            this.status = StatusSubmissao.PROCESSANDO;
+        } else if (novoEstado instanceof EstadoConcluida) {
+            this.status = StatusSubmissao.CONCLUIDA;
+        } else if (novoEstado instanceof EstadoFalha) {
+            this.status = StatusSubmissao.FALHA;
+        }
     }
 
     public Long getId() {
