@@ -2,7 +2,9 @@ package com.psoft.arena.model;
 
 import com.psoft.arena.model.estado.*;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "submissoes", uniqueConstraints = @UniqueConstraint(columnNames = {
@@ -46,8 +48,7 @@ public class Submissao {
         this.versao = versao;
         this.codigoFonte = codigoFonte;
         this.dataHoraSubmissao = LocalDateTime.now();
-        this.status = StatusSubmissao.SUBMETIDA;
-        this.estado = new EstadoSubmetida();
+        definirEstado(new EstadoSubmetida());
     }
 
     @PostLoad
@@ -65,23 +66,26 @@ public class Submissao {
         if (estado == null) {
             restaurarEstado();
         }
-        estado.alterar(this, novoStatus);
+
+        Objects.requireNonNull(novoStatus, "O status solicitado não pode ser nulo.");
+
+        EstadoSubmissao proximo = switch (novoStatus) {
+            case EM_FILA -> estado.enfileirar();
+            case PROCESSANDO -> estado.iniciarProcessamento();
+            case CONCLUIDA -> estado.concluir();
+            case FALHA -> estado.falhar();
+            case SUBMETIDA -> throw new IllegalStateException(
+                    "SUBMETIDA é o estado inicial.");
+        };
+
+        definirEstado(proximo);
     }
 
-    public void definirEstado(EstadoSubmissao novoEstado) {
-        this.estado = novoEstado;
+    private void definirEstado(EstadoSubmissao novoEstado) {
+        Objects.requireNonNull(novoEstado, "O estado não pode ser nulo.");
 
-        if (novoEstado instanceof EstadoSubmetida) {
-            this.status = StatusSubmissao.SUBMETIDA;
-        } else if (novoEstado instanceof EstadoEmFila) {
-            this.status = StatusSubmissao.EM_FILA;
-        } else if (novoEstado instanceof EstadoProcessando) {
-            this.status = StatusSubmissao.PROCESSANDO;
-        } else if (novoEstado instanceof EstadoConcluida) {
-            this.status = StatusSubmissao.CONCLUIDA;
-        } else if (novoEstado instanceof EstadoFalha) {
-            this.status = StatusSubmissao.FALHA;
-        }
+        this.status = novoEstado.status();
+        this.estado = novoEstado;
     }
 
     public Long getId() {
