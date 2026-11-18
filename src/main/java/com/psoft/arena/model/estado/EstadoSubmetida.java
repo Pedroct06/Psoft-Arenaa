@@ -13,4 +13,9 @@ public class EstadoSubmetida implements EstadoSubmissao {
         }
         submissao.definirEstado(new EstadoEmFila());
     }
+
+    @Override
+    public StatusSubmissao getStatus() {
+        return StatusSubmissao.SUBMETIDA;
+    }
 }

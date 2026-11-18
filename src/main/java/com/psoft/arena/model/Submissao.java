@@ -3,6 +3,7 @@ package com.psoft.arena.model;
 import com.psoft.arena.model.estado.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "submissoes", uniqueConstraints = @UniqueConstraint(columnNames = {
@@ -69,19 +70,10 @@ public class Submissao {
     }
 
     public void definirEstado(EstadoSubmissao novoEstado) {
-        this.estado = novoEstado;
+        Objects.requireNonNull(novoEstado, "O estado não pode ser nulo.");
 
-        if (novoEstado instanceof EstadoSubmetida) {
-            this.status = StatusSubmissao.SUBMETIDA;
-        } else if (novoEstado instanceof EstadoEmFila) {
-            this.status = StatusSubmissao.EM_FILA;
-        } else if (novoEstado instanceof EstadoProcessando) {
-            this.status = StatusSubmissao.PROCESSANDO;
-        } else if (novoEstado instanceof EstadoConcluida) {
-            this.status = StatusSubmissao.CONCLUIDA;
-        } else if (novoEstado instanceof EstadoFalha) {
-            this.status = StatusSubmissao.FALHA;
-        }
+        this.status = novoEstado.getStatus();
+        this.estado = novoEstado;
     }
 
     public Long getId() {

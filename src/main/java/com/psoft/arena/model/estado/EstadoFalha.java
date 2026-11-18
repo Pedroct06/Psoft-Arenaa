@@ -9,4 +9,9 @@ public class EstadoFalha implements EstadoSubmissao {
     public void alterar(Submissao submissao, StatusSubmissao novoStatus) {
         throw new IllegalStateException("A submissão está em estado de falha.");
     }
+
+    @Override
+    public StatusSubmissao getStatus() {
+        return StatusSubmissao.FALHA;
+    }
 }

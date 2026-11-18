@@ -20,4 +20,9 @@ public class EstadoProcessando implements EstadoSubmissao {
         throw new IllegalStateException(
                 "Transição inválida: PROCESSANDO para " + novoStatus);
     }
+
+    @Override
+    public StatusSubmissao getStatus() {
+        return StatusSubmissao.PROCESSANDO;
+    }
 }

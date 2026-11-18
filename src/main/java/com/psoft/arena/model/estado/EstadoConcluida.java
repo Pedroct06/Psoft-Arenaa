@@ -9,4 +9,9 @@ public class EstadoConcluida implements EstadoSubmissao {
     public void alterar(Submissao submissao, StatusSubmissao novoStatus) {
         throw new IllegalStateException("A submissão já foi concluída.");
     }
+
+    @Override
+    public StatusSubmissao getStatus() {
+        return StatusSubmissao.CONCLUIDA;
+    }
 }
