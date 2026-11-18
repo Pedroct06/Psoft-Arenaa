@@ -21,3 +21,19 @@ cd Psoft-Arenaa
 export ARENA_LLM_CHAVE_MESTRA=$(openssl rand -base64 32)
 mvn spring-boot:run
 ```
+
+## Cobertura de testes
+
+A cobertura de testes é medida utilizando o JaCoCo.
+
+Para executar os testes e gerar o relatório, utilize `mvn -Dnet.bytebuddy.experimental=true clean verify`.
+
+Resultados da cobertura:
+
+| Métrica | Cobertura |
+|---|---:|
+| Linhas | 94,76% |
+| Instruções | 94,38% |
+| Branches | 84,46% |
+
+O relatório HTML pode ser consultado em `target/site/jacoco/index.html`.
