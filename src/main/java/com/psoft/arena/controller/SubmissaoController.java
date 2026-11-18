@@ -12,7 +12,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+
+@Tag(name = "Submissões", description = "Submissão de soluções para atividades")
 @RestController
 @RequestMapping("/api/atividades/{atividadeId}/submissoes")
 public class SubmissaoController {
@@ -27,6 +33,11 @@ public class SubmissaoController {
         this.acompanhamentoService = acompanhamentoService;
     }
 
+    @Operation(summary = "Submeter solução para atividade", responses = {
+            @ApiResponse(responseCode = "201", description = "Submissão realizada com sucesso.", useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos.", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Estudante não autorizado a submeter para esta atividade.", content = @Content),
+    })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<SubmissaoResponseDTO> submeterArquivo(
             @PathVariable Long atividadeId,
@@ -45,6 +56,11 @@ public class SubmissaoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "Consultar acompanhamento de submissão", responses = {
+            @ApiResponse(responseCode = "200", description = "Acompanhamento da submissão retornado.", useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos.", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Submissão ou estudante não encontrado.", content = @Content),
+    })
     @GetMapping("/{submissaoId}/acompanhamento")
     public ResponseEntity<AcompanhamentoSubmissaoResponseDTO> consultarAcompanhamento(
             @PathVariable Long atividadeId,
