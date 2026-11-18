@@ -2,6 +2,7 @@ package com.psoft.arena.model;
 
 import com.psoft.arena.model.estado.*;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -47,8 +48,7 @@ public class Submissao {
         this.versao = versao;
         this.codigoFonte = codigoFonte;
         this.dataHoraSubmissao = LocalDateTime.now();
-        this.status = StatusSubmissao.SUBMETIDA;
-        this.estado = new EstadoSubmetida();
+        definirEstado(new EstadoSubmetida());
     }
 
     @PostLoad
@@ -66,13 +66,25 @@ public class Submissao {
         if (estado == null) {
             restaurarEstado();
         }
-        estado.alterar(this, novoStatus);
+
+        Objects.requireNonNull(novoStatus, "O status solicitado não pode ser nulo.");
+
+        EstadoSubmissao proximo = switch (novoStatus) {
+            case EM_FILA -> estado.enfileirar();
+            case PROCESSANDO -> estado.iniciarProcessamento();
+            case CONCLUIDA -> estado.concluir();
+            case FALHA -> estado.falhar();
+            case SUBMETIDA -> throw new IllegalStateException(
+                    "SUBMETIDA é o estado inicial.");
+        };
+
+        definirEstado(proximo);
     }
 
-    public void definirEstado(EstadoSubmissao novoEstado) {
+    private void definirEstado(EstadoSubmissao novoEstado) {
         Objects.requireNonNull(novoEstado, "O estado não pode ser nulo.");
 
-        this.status = novoEstado.getStatus();
+        this.status = novoEstado.status();
         this.estado = novoEstado;
     }
 
