@@ -31,6 +31,11 @@ public class AcompanhamentoSubmissaoService {
                 null,
                 submissao.getStatus()
         ));
+        System.out.println(
+        "Submissão " + submissao.getId()
+        + " | Estudante " + submissao.getEstudanteId()
+        + " | Status inicial: " + submissao.getStatus()
+        );
     }
 
     @Transactional

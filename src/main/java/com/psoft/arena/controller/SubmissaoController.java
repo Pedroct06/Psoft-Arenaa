@@ -12,7 +12,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+
+@Tag(name = "Submissões", description = "Submissão de soluções para atividades")
 @RestController
 @RequestMapping("/api/atividades/{atividadeId}/submissoes")
 public class SubmissaoController {
@@ -27,6 +33,12 @@ public class SubmissaoController {
         this.acompanhamentoService = acompanhamentoService;
     }
 
+    @Operation(summary = "Submeter solução para atividade", responses = {
+            @ApiResponse(responseCode = "201", description = "Submissão realizada com sucesso.", useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos.", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Estudante não autorizado a submeter para esta atividade.", content = @Content),
+            @ApiResponse(responseCode = "404",description = "Atividade não encontrada."),
+            @ApiResponse(responseCode = "422",description = "A atividade está concluída ou o prazo de submissão terminou.")})
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<SubmissaoResponseDTO> submeterArquivo(
             @PathVariable Long atividadeId,
@@ -45,6 +57,12 @@ public class SubmissaoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(
+        summary = "Consultar o estado e o histórico de uma submissão",
+        responses = {
+                @ApiResponse(responseCode = "200",description = "Estado atual e histórico da submissão retornados.",useReturnTypeSchema = true),
+                @ApiResponse(responseCode = "400",description = "O estudanteId está ausente ou algum identificador não é numérico."),
+                @ApiResponse(responseCode = "404",description = "Submissão não encontrada para o estudante e a atividade informados.")})
     @GetMapping("/{submissaoId}/acompanhamento")
     public ResponseEntity<AcompanhamentoSubmissaoResponseDTO> consultarAcompanhamento(
             @PathVariable Long atividadeId,

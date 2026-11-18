@@ -12,6 +12,8 @@ import com.psoft.arena.service.AtividadeConsultaService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @RestController 
 @RequestMapping("/estudantes/{matricula}/atividades")
@@ -23,15 +25,24 @@ public class EstudanteAtividadeController {
         this.service = service;
     }
 
+    @Operation(
+    summary = "Listar atividades do estudante",
+    description = "Retorna as atividades das turmas vinculadas à matrícula informada, incluindo as concluídas.",
+    responses = {
+        @ApiResponse(responseCode = "200", description = "Lista de atividades do estudante retornada.", useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "404", description = "Estudante não encontrado.", content = @Content)})
     @GetMapping
-    @Operation (summary = "Listar atividades das turmas dos estudantes", description = "Inclui atividades concluidas, que continuam consultaveis, mas nao aceitam submissoes")
     public List<AtividadeEstudanteResponseDTO> listar(@PathVariable String matricula){
         return service.listar(matricula);
     }
 
+
+    @Operation(summary = "Consultar uma atividade do estudante", responses = {
+    @ApiResponse(responseCode = "200", description = "Atividade encontrada.", useReturnTypeSchema = true),
+    @ApiResponse(responseCode = "400", description = "O ID da atividade deve ser numérico.", content = @Content),
+    @ApiResponse(responseCode = "403", description = "O estudante não pertence à turma da atividade.", content = @Content),
+    @ApiResponse(responseCode = "404", description = "Estudante ou atividade não encontrada.", content = @Content)})
     @GetMapping("/{id}")
-    @Operation(summary = "Consultar uma atividade", 
-                description = "403 se a atividade  pertence a uma turma da qual o estudante nao participa")
     public AtividadeEstudanteResponseDTO buscar(@PathVariable String matricula, @PathVariable Long id){
         return service.buscar((matricula), id);
     }

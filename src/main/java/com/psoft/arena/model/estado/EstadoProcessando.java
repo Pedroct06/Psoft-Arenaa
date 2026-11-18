@@ -1,23 +1,21 @@
 package com.psoft.arena.model.estado;
 
 import com.psoft.arena.model.StatusSubmissao;
-import com.psoft.arena.model.Submissao;
 
 public class EstadoProcessando implements EstadoSubmissao {
 
     @Override
-    public void alterar(Submissao submissao, StatusSubmissao novoStatus) {
-        if (novoStatus == StatusSubmissao.CONCLUIDA) {
-            submissao.definirEstado(new EstadoConcluida());
-            return;
-        }
+    public StatusSubmissao status() {
+        return StatusSubmissao.PROCESSANDO;
+    }
 
-        if (novoStatus == StatusSubmissao.FALHA) {
-            submissao.definirEstado(new EstadoFalha());
-            return;
-        }
+    @Override
+    public EstadoSubmissao concluir() {
+        return new EstadoConcluida();
+    }
 
-        throw new IllegalStateException(
-                "Transição inválida: PROCESSANDO para " + novoStatus);
+    @Override
+    public EstadoSubmissao falhar() {
+        return new EstadoFalha();
     }
 }
