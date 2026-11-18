@@ -35,6 +35,12 @@ public class Atividade {
         this.turma = turma; this.problema = problema; this.estrategia = estrategia;
         this.configuracaoLlm = configuracaoLlm; this.status = StatusAtividade.ABERTA;
     }
+
+    // só aceita submissão se estiver aberta e o prazo não tiver vencido.
+    public boolean aceitaSubmissoes(OffsetDateTime agora) {
+        return isAberta() && !agora.isAfter(prazoSubmissao);
+    }
+
     public void encerrar() { status = StatusAtividade.CONCLUIDA; }
     public boolean isAberta() { return status == StatusAtividade.ABERTA; }
     public Long getId() { return id; }
@@ -46,6 +52,5 @@ public class Atividade {
     public Problema getProblema() { return problema; }
     public Estrategia getEstrategia() { return estrategia; }
     public ConfiguracaoLlm getConfiguracaoLlm() { return configuracaoLlm; }
-    // Por enquanto só o LLM padrão; os adicionais entram na US18
     public List<ConfiguracaoLlm> getModelosAvaliacao() { return List.of(configuracaoLlm); }
 }
