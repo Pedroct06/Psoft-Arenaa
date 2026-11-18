@@ -10,11 +10,13 @@ import com.psoft.arena.service.EstudanteService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +28,9 @@ class AtividadeConsultaServiceTest {
 
     @Mock AtividadeRepository atividadeRepository;
     @Mock EstudanteService estudanteService;
-    @InjectMocks AtividadeConsultaService service;
+    // Relógio fixo em 1º/12/2026, antes do prazo (10/12/2026) da atividade de teste.
+    Clock clock = Clock.fixed(Instant.parse("2026-12-01T12:00:00Z"), ZoneOffset.UTC);
+    AtividadeConsultaService service;
 
     Estudante ana;
     Estudante bia;
@@ -34,6 +38,7 @@ class AtividadeConsultaServiceTest {
 
     @BeforeEach
     void preparar() {
+        service = new AtividadeConsultaService(atividadeRepository, estudanteService, clock);
         ana = new Estudante("Ana", "123", "ana@x.com");
         bia = new Estudante("Bia", "456", "bia@x.com");
         Turma turma = new Turma("Psoft", "T1", "2026.2", "Prof");
@@ -68,6 +73,20 @@ class AtividadeConsultaServiceTest {
         AtividadeEstudanteResponseDTO r = service.buscar("123", 1L);
 
         assertEquals(StatusAtividade.CONCLUIDA, r.status());
+        assertFalse(r.aceitaSubmissoes());
+    }
+
+    @Test
+    void atividadeAbertaMasComPrazoVencidoNaoAceitaSubmissao() {
+        Clock depoisDoPrazo = Clock.fixed(Instant.parse("2026-12-11T12:00:00Z"), ZoneOffset.UTC);
+        AtividadeConsultaService servicoTardio =
+                new AtividadeConsultaService(atividadeRepository, estudanteService, depoisDoPrazo);
+        when(estudanteService.buscarPorMatricula("123")).thenReturn(ana);
+        when(atividadeRepository.findById(1L)).thenReturn(Optional.of(atividade));
+
+        AtividadeEstudanteResponseDTO r = servicoTardio.buscar("123", 1L);
+
+        assertEquals(StatusAtividade.ABERTA, r.status());
         assertFalse(r.aceitaSubmissoes());
     }
 

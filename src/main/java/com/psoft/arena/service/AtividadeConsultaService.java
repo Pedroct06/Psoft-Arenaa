@@ -1,5 +1,7 @@
 package com.psoft.arena.service;
 
+import java.time.Clock;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import com.psoft.arena.dto.AtividadeEstudanteResponseDTO;
@@ -16,18 +18,21 @@ public class AtividadeConsultaService {
     
     private final AtividadeRepository atividadeRepository;
     private final EstudanteService estudanteService;
+    private final Clock clock;
 
-    public AtividadeConsultaService(AtividadeRepository atividadeRepository, EstudanteService estudanteService){
+    public AtividadeConsultaService(AtividadeRepository atividadeRepository, EstudanteService estudanteService, Clock clock){
         this.atividadeRepository = atividadeRepository;
         this.estudanteService = estudanteService;
+        this.clock = clock;
     }
 
     @Transactional(readOnly = true)
     public List<AtividadeEstudanteResponseDTO> listar(String matricula) {
         Estudante estudante = estudanteService.buscarPorMatricula(matricula);
+        OffsetDateTime agora = OffsetDateTime.now(clock);
         return atividadeRepository
                 .findByTurmaEstudantesMatriculaOrderByPrazoSubmissaoAsc(estudante.getMatricula())
-                .stream().map(AtividadeEstudanteResponseDTO::new).toList();
+                .stream().map(a -> new AtividadeEstudanteResponseDTO(a, agora)).toList();
     }
 
     @Transactional(readOnly = true)
@@ -38,6 +43,6 @@ public class AtividadeConsultaService {
         if (!atividade.getTurma().possuiEstudante(estudante)) {
             throw new AcessoNegadoException("O estudante não participa da turma desta atividade.");
         }
-        return new AtividadeEstudanteResponseDTO(atividade);
+        return new AtividadeEstudanteResponseDTO(atividade, OffsetDateTime.now(clock));
     }
 }

@@ -1,14 +1,14 @@
 package com.psoft.arena.service;
 
 import org.springframework.context.ApplicationEventPublisher;
-import com.psoft.arena.dto.AtividadeResponseDTO;
 import com.psoft.arena.dto.SubmissaoResponseDTO;
-import com.psoft.arena.model.StatusAtividade;
+import com.psoft.arena.model.Atividade;
 import com.psoft.arena.model.Submissao;
 import com.psoft.arena.repository.SubmissaoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.OffsetDateTime;
 
 @Service
@@ -19,32 +19,34 @@ public class SubmeterSolucaoService {
     private final TurmaEstudanteService turmaEstudanteService;
     private final AcompanhamentoSubmissaoService acompanhamentoService;
     private final ApplicationEventPublisher eventPublisher;
+    private final Clock clock;
 
     public SubmeterSolucaoService(
             SubmissaoRepository submissaoRepository,
             AtividadeService atividadeService,
             TurmaEstudanteService turmaEstudanteService,
             AcompanhamentoSubmissaoService acompanhamentoService,
-        ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            Clock clock) {
         this.submissaoRepository = submissaoRepository;
         this.atividadeService = atividadeService;
         this.turmaEstudanteService = turmaEstudanteService;
         this.acompanhamentoService = acompanhamentoService;
         this.eventPublisher = eventPublisher;
+        this.clock = clock;
     }
 
     @Transactional
     public SubmissaoResponseDTO executar(Long estudanteId, Long atividadeId, String nomeArquivo, String codigoFonte) {
         validarCodigoJava(nomeArquivo, codigoFonte);
 
-        AtividadeResponseDTO atividade = atividadeService.buscarPorId(atividadeId);
+        Atividade atividade = atividadeService.buscarEntidadePorId(atividadeId);
 
-        if (atividade.status() == StatusAtividade.CONCLUIDA
-                || OffsetDateTime.now().isAfter(atividade.prazoSubmissao())) {
+        if (!atividade.aceitaSubmissoes(OffsetDateTime.now(clock))) {
             throw new IllegalStateException("Esta atividade está encerrada e não aceita novas submissões.");
         }
 
-        if (!estudanteEstaEmTurma(atividade, estudanteId)) {
+        if (!estudanteEstaEmTurma(atividade.getTurma().getCodigo(), estudanteId)) {
             throw new SecurityException("Estudante não pertence à turma desta atividade.");
         }
 
@@ -74,8 +76,8 @@ public class SubmeterSolucaoService {
         }
     }
 
-    private boolean estudanteEstaEmTurma(AtividadeResponseDTO atividade, Long estudanteId) {
-        var estudantesDaTurma = turmaEstudanteService.listar(atividade.codigoTurma());
+    private boolean estudanteEstaEmTurma(String codigoTurma, Long estudanteId) {
+        var estudantesDaTurma = turmaEstudanteService.listar(codigoTurma);
 
         return estudantesDaTurma.stream()
                 .anyMatch(estudante -> estudante.getId().equals(estudanteId));
