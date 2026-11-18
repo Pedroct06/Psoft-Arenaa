@@ -1,4 +1,4 @@
-package com.psoft.arena.service;
+package com.psoft.arena.estudante;
 
 import com.psoft.arena.dto.EstudanteRequestDTO;
 import com.psoft.arena.dto.EstudanteUpdateDTO;
@@ -6,6 +6,8 @@ import com.psoft.arena.exception.ConflitoException;
 import com.psoft.arena.exception.RecursoNaoEncontradoException;
 import com.psoft.arena.model.Estudante;
 import com.psoft.arena.repository.EstudanteRepository;
+import com.psoft.arena.service.EstudanteService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
