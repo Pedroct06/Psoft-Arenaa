@@ -1,5 +1,6 @@
 package com.psoft.arena.repository;
 
+import com.psoft.arena.model.StatusSubmissao;
 import com.psoft.arena.model.Submissao;
 
 import java.util.List;
@@ -10,4 +11,5 @@ public interface SubmissaoRepository extends JpaRepository<Submissao, Long> {
   int countByEstudanteIdAndAtividadeId(Long estudanteId, Long atividadeId);
   List<Submissao> findByEstudanteIdAndAtividadeIdOrderByVersaoAsc(Long estudanteId, Long atividadeId);
   java.util.Optional<Submissao> findByIdAndEstudanteIdAndAtividadeId(Long id, Long estudanteId, Long atividadeId);
+  List<Submissao> findByStatus(StatusSubmissao status);
 }
