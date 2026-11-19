@@ -183,6 +183,18 @@ class SubmeterSolucaoServiceTest {
   }
 
   @Test
+  void recusaEstudanteInexistente() {
+    when(atividadeService.buscarEntidadePorId(10L)).thenReturn(atividadeAberta);
+    when(turmaEstudanteService.listar("T1")).thenReturn(List.of(ana));
+
+    assertThrows(AcessoNegadoException.class,
+        () -> service.executar(999L, 10L, "Solucao.java", "public class Solucao {}"));
+
+    verify(submissaoRepository, never()).save(any());
+    verifyNoInteractions(eventPublisher);
+  }
+
+  @Test
   void recusaEstudanteForaDaTurma() {
     when(atividadeService.buscarEntidadePorId(10L)).thenReturn(atividadeAberta);
     when(turmaEstudanteService.listar("T1")).thenReturn(List.of(ana));

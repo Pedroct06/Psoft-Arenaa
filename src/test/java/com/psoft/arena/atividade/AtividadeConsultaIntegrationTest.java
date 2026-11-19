@@ -37,7 +37,7 @@ class AtividadeConsultaIntegrationTest {
 
     @BeforeEach
     void preparar() {
-        atividades.deleteAll();
+        // Sem deleteAll: cada teste cria estudantes e turmas novos, então só enxerga as próprias atividades.
         matriculaAna = UUID.randomUUID().toString();
         matriculaBia = UUID.randomUUID().toString();
         Estudante ana = estudantes.save(new Estudante("Ana", matriculaAna, "ana@x.com"));
