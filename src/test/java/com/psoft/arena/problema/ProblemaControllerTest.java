@@ -67,7 +67,9 @@ class ProblemaControllerTest {
 
     @Test
     void consultaInexistenteRetorna404() throws Exception {
-        mockMvc.perform(get("/problemas/999999")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/problemas/999999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.erro").value("Problema com ID 999999 não encontrado."));
     }
 
     @Test

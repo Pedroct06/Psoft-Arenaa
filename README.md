@@ -13,7 +13,7 @@ Trabalho da cadeira de **Projeto de Software** (UFCG). API REST em Spring Boot e
 
 ## Como rodar
  
-Requisitos: **Java 17** ou superior (o projeto declara Java 17; os testes foram rodados com Java 21; o 25 não foi testado) e Maven.
+Requisitos: Java 17 ou superior e Maven. Os testes foram executados com sucesso utilizando Java 25.
  
 ```bash
 git clone https://github.com/Pedroct06/Psoft-Arenaa.git
@@ -32,8 +32,8 @@ Resultados da cobertura:
 
 | Métrica | Cobertura |
 |---|---:|
-| Linhas | 94,76% |
-| Instruções | 94,38% |
-| Branches | 84,46% |
+| Linhas | 94,84% |
+| Instruções | 94,43% |
+| Branches | 84,00% |
 
 O relatório HTML pode ser consultado em `target/site/jacoco/index.html`.
