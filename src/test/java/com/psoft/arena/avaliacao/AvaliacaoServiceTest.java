@@ -9,6 +9,10 @@ import com.psoft.arena.repository.AvaliacaoRepository;
 import com.psoft.arena.repository.ResultadoModeloRepository;
 import com.psoft.arena.repository.SubmissaoRepository;
 import com.psoft.arena.service.AvaliacaoService;
+import com.psoft.arena.service.estrategia.AvaliacaoAcoplamentoCoesao;
+import com.psoft.arena.service.estrategia.AvaliacaoCodeSmells;
+import com.psoft.arena.service.estrategia.AvaliacaoPadroesProjeto;
+import com.psoft.arena.service.estrategia.SeletorEstrategiaAvaliacao;
 import com.psoft.arena.service.llm.ClienteLlm;
 import com.psoft.arena.service.llm.RespostaLlm;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -38,6 +43,8 @@ class AvaliacaoServiceTest {
     @Mock AvaliacaoRepository avaliacaoRepository;
     @Mock ResultadoModeloRepository resultadoModeloRepository;
     @Mock ClienteLlm clienteLlm;
+    @Spy SeletorEstrategiaAvaliacao seletorEstrategia = new SeletorEstrategiaAvaliacao(List.of(
+            new AvaliacaoCodeSmells(), new AvaliacaoAcoplamentoCoesao(), new AvaliacaoPadroesProjeto()));
     @InjectMocks AvaliacaoService service;
 
     Submissao submissao;
@@ -108,6 +115,25 @@ class AvaliacaoServiceTest {
         assertTrue(prompt.getValue().contains("RP1: usar padrão Strategy no frete"));
         assertTrue(prompt.getValue().contains("Verifique se o padrão Strategy foi aplicado corretamente."));
         assertTrue(prompt.getValue().contains("public class Frete {}"));
+        assertTrue(prompt.getValue().contains(new AvaliacaoCodeSmells().criterios()));
+    }
+
+    @Test
+    void promptUsaOsCriteriosDoTipoDaEstrategia() {
+        Estrategia padroes = new Estrategia("Padrões", TipoEstrategia.PADROES_DE_PROJETO,
+                "Avalia padrões", "Verifique o Strategy.");
+        Atividade atividadePadroes = new Atividade("Ativ", "Resolva", OffsetDateTime.now().plusDays(1),
+                new Turma("Psoft", "T2", "2026.2", "Prof"), atividade.getProblema(), padroes, llmPadrao);
+        when(atividadeRepository.findParaAvaliacaoById(20L)).thenReturn(Optional.of(atividadePadroes));
+        when(clienteLlm.avaliar(any(), anyString()))
+                .thenReturn(new RespostaLlm(6.0, "Ok.", List.of("e1")));
+
+        service.avaliar(10L);
+
+        ArgumentCaptor<String> prompt = ArgumentCaptor.forClass(String.class);
+        verify(clienteLlm).avaliar(eq(llmPadrao), prompt.capture());
+        assertTrue(prompt.getValue().contains(new AvaliacaoPadroesProjeto().criterios()));
+        assertFalse(prompt.getValue().contains(new AvaliacaoCodeSmells().criterios()));
     }
 
     @Test

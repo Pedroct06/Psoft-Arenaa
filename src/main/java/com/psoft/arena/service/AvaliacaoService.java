@@ -11,6 +11,8 @@ import com.psoft.arena.repository.AtividadeRepository;
 import com.psoft.arena.repository.AvaliacaoRepository;
 import com.psoft.arena.repository.ResultadoModeloRepository;
 import com.psoft.arena.repository.SubmissaoRepository;
+import com.psoft.arena.service.estrategia.EstrategiaAvaliacao;
+import com.psoft.arena.service.estrategia.SeletorEstrategiaAvaliacao;
 import com.psoft.arena.service.llm.ClienteLlm;
 import com.psoft.arena.service.llm.PromptAvaliacao;
 import com.psoft.arena.service.llm.RespostaLlm;
@@ -28,18 +30,21 @@ public class AvaliacaoService {
     private final AvaliacaoRepository avaliacaoRepository;
     private final ResultadoModeloRepository resultadoModeloRepository;
     private final ClienteLlm clienteLlm;
+    private final SeletorEstrategiaAvaliacao seletorEstrategia;
 
     public AvaliacaoService(
             SubmissaoRepository submissaoRepository,
             AtividadeRepository atividadeRepository,
             AvaliacaoRepository avaliacaoRepository,
             ResultadoModeloRepository resultadoModeloRepository,
-            ClienteLlm clienteLlm) {
+            ClienteLlm clienteLlm,
+            SeletorEstrategiaAvaliacao seletorEstrategia) {
         this.submissaoRepository = submissaoRepository;
         this.atividadeRepository = atividadeRepository;
         this.avaliacaoRepository = avaliacaoRepository;
         this.resultadoModeloRepository = resultadoModeloRepository;
         this.clienteLlm = clienteLlm;
+        this.seletorEstrategia = seletorEstrategia;
     }
 
     // Se qualquer modelo falhar, a avaliação não é concluída
@@ -51,8 +56,10 @@ public class AvaliacaoService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Atividade com ID " + submissao.getAtividadeId() + " não encontrada."));
 
-        String prompt = PromptAvaliacao.montar(
-                atividade.getProblema(), atividade.getEstrategia(), submissao.getCodigoFonte());
+        EstrategiaAvaliacao estrategiaAvaliacao =
+                seletorEstrategia.selecionar(atividade.getEstrategia().getTipo());
+        String prompt = PromptAvaliacao.montar(atividade.getProblema(), atividade.getEstrategia(),
+                estrategiaAvaliacao, submissao.getCodigoFonte());
 
         List<ResultadoModelo> resultados = atividade.getModelosAvaliacao().stream()
                 .map(modelo -> avaliarComModelo(submissaoId, modelo, prompt))
