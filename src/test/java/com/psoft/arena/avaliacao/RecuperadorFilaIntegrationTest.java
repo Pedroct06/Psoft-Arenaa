@@ -38,6 +38,7 @@ class RecuperadorFilaIntegrationTest {
   static Long idBootEmFila1;
   static Long idBootSubmetida2;
   static Long idBootProcessando3;
+  static Long idComAvaliacao;
   static Long idEstudanteBoot;
   static final List<String> ordemExecucaoBoot = Collections.synchronizedList(new ArrayList<>());
   static final ByteArrayOutputStream saidaTerminalBoot = new ByteArrayOutputStream();
@@ -50,7 +51,7 @@ class RecuperadorFilaIntegrationTest {
     ClienteLlm clienteLlm;
 
     @Bean
-    Runnable semearBancoAntesDoApplicationReady(
+    Runnable semearBancoAntesDoApplicationReady(AvaliacaoRepository avaliacoes,
         EstudanteRepository estudantes,
         TurmaRepository turmas,
         ProblemaRepository problemas,
@@ -74,6 +75,9 @@ class RecuperadorFilaIntegrationTest {
               ordemExecucaoBoot.add("SUB_2");
             if (prompt.contains("CODIGO_SUB_3"))
               ordemExecucaoBoot.add("SUB_3");
+            if (prompt.contains("CODIGO_SUB_4")) {
+              ordemExecucaoBoot.add("SUB_4");
+}
             return new RespostaLlm(9.5, "Avaliado no startup.", List.of("Ok"));
           });
 
@@ -109,6 +113,22 @@ class RecuperadorFilaIntegrationTest {
           acompanhamentoService.alterarStatus(s3.getId(), StatusSubmissao.PROCESSANDO);
           idBootProcessando3 = s3.getId();
 
+
+          Submissao s4 = submissoes.save(
+          new Submissao(est.getId(), ativ.getId(), 4, "CODIGO_SUB_4"));
+
+          idComAvaliacao = s4.getId();
+          acompanhamentoService.registrarEstadoInicial(s4);
+          acompanhamentoService.alterarStatus(idComAvaliacao, StatusSubmissao.EM_FILA);
+          acompanhamentoService.alterarStatus(idComAvaliacao, StatusSubmissao.PROCESSANDO);
+
+          ResultadoModelo resultado = ResultadoModelo.sucesso(
+          idComAvaliacao,
+          "grok-3",
+          new RespostaLlm(8.5, "Avaliação finalizada.", List.of("Critério atendido."))
+          );
+
+          avaliacoes.save(Avaliacao.compor(idComAvaliacao, List.of(resultado)));
           // Limpa o buffer antes do ApplicationReadyEvent disparar o RecuperadorFila
           saidaTerminalBoot.reset();
         }
@@ -157,6 +177,22 @@ class RecuperadorFilaIntegrationTest {
       assertEquals(StatusSubmissao.CONCLUIDA, aguardarStatusFinal(idBootEmFila1));
       assertEquals(StatusSubmissao.CONCLUIDA, aguardarStatusFinal(idBootSubmetida2));
       assertEquals(StatusSubmissao.FALHA, submissoes.findById(idBootProcessando3).orElseThrow().getStatus());
+      assertEquals(
+        StatusSubmissao.CONCLUIDA,
+        submissoes.findById(idComAvaliacao).orElseThrow().getStatus()
+      );
+
+      assertEquals(
+        List.of(
+        StatusSubmissao.SUBMETIDA,
+        StatusSubmissao.EM_FILA,
+        StatusSubmissao.PROCESSANDO,
+        StatusSubmissao.CONCLUIDA
+        ),
+        historicos.findBySubmissaoIdOrderByDataHoraAsc(idComAvaliacao).stream()
+          .map(HistoricoSubmissao::getStatusNovo)
+          .toList()
+      );
 
       // 5. Recuperação de falhas: PROCESSANDO nunca foi enviada ao LLM
       assertFalse(ordemExecucaoBoot.contains("SUB_3"));

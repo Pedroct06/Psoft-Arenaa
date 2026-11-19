@@ -8,6 +8,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import com.psoft.arena.repository.AvaliacaoRepository;
 
 import java.util.Comparator;
 import java.util.List;
@@ -19,8 +20,9 @@ public class RecuperadorFila {
   private final AcompanhamentoSubmissaoService acompanhamentoService;
   private final ProcessarSubmissaoService processarService;
   private final ThreadPoolTaskExecutor executor;
+  private final AvaliacaoRepository avaliacoes;
 
-  public RecuperadorFila(
+  public RecuperadorFila(AvaliacaoRepository avaliacoes,
       SubmissaoRepository submissaoRepository,
       AcompanhamentoSubmissaoService acompanhamentoService,
       ProcessarSubmissaoService processarService,
@@ -29,15 +31,22 @@ public class RecuperadorFila {
     this.acompanhamentoService = acompanhamentoService;
     this.processarService = processarService;
     this.executor = executor;
+    this.avaliacoes = avaliacoes;
   }
 
   @EventListener(ApplicationReadyEvent.class)
   public void recuperar() {
-    // 1. PROCESSANDO -> FALHA
+    // 1. PROCESSANDO -> CONCLUIDA se a avaliação final já existe, ou FALHA caso contrário.
     List<Submissao> processando = submissaoRepository.findByStatus(StatusSubmissao.PROCESSANDO);
+
     for (Submissao submissao : processando) {
-      acompanhamentoService.alterarStatus(submissao.getId(), StatusSubmissao.FALHA);
-    }
+      Long id = submissao.getId();
+      StatusSubmissao destino = avaliacoes.findBySubmissaoId(id).isPresent()
+        ? StatusSubmissao.CONCLUIDA
+        : StatusSubmissao.FALHA;
+
+      acompanhamentoService.alterarStatus(id, destino);
+  }
 
     // 2. SUBMETIDA -> EM_FILA
     List<Submissao> submetidas = submissaoRepository.findByStatus(StatusSubmissao.SUBMETIDA);
