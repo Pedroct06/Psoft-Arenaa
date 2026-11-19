@@ -2,6 +2,7 @@ package com.psoft.arena.service.llm;
 
 import com.psoft.arena.model.Estrategia;
 import com.psoft.arena.model.Problema;
+import com.psoft.arena.service.estrategia.EstrategiaAvaliacao;
 
 public final class PromptAvaliacao {
 
@@ -15,9 +16,13 @@ public final class PromptAvaliacao {
     private PromptAvaliacao() {
     }
 
-    public static String montar(Problema problema, Estrategia estrategia, String codigoFonte) {
+    public static String montar(Problema problema, Estrategia estrategia,
+                                EstrategiaAvaliacao estrategiaAvaliacao, String codigoFonte) {
         return """
                 ## Estratégia de avaliação: %s (%s)
+                %s
+
+                ## Orientações do professor
                 %s
 
                 ## Problema: %s
@@ -39,6 +44,7 @@ public final class PromptAvaliacao {
                 """.formatted(
                 estrategia.getNome(),
                 estrategia.getTipo(),
+                estrategiaAvaliacao.criterios(),
                 estrategia.getPromptAvaliacao(),
                 problema.getTitulo(),
                 problema.getDescricao(),
