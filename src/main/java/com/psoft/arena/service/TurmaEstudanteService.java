@@ -24,10 +24,31 @@ public class TurmaEstudanteService {
         this.turmaRepository = turmaRepository;
     }
 
-    // Somente turmas ativas recebem novas associações (a verificação fica em TurmaService).
     @Transactional
     public Estudante adicionar(String codigoTurma, String matricula) {
         Turma turma = turmaService.garantirTurmaAtiva(codigoTurma);
         Estudante estudante = estudanteService.buscarPorMatricula(matricula);
         if (turma.possuiEstudante(estudante)) {
-            throw new ConflitoException("O
+            throw new ConflitoException("O estudante já está associado a esta turma.");
+        }
+        turma.adicionarEstudante(estudante);
+        turmaRepository.save(turma);
+        return estudante;
+    }
+
+    @Transactional
+    public void remover(String codigoTurma, String matricula) {
+        Turma turma = turmaService.buscarPorCodigo(codigoTurma);
+        Estudante estudante = estudanteService.buscarPorMatricula(matricula);
+        if (!turma.possuiEstudante(estudante)) {
+            throw new RecursoNaoEncontradoException("Estudante não associado à turma.");
+        }
+        turma.removerEstudante(estudante);
+        turmaRepository.save(turma);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Estudante> listar(String codigoTurma) {
+        return List.copyOf(turmaService.buscarPorCodigo(codigoTurma).getEstudantes());
+    }
+}

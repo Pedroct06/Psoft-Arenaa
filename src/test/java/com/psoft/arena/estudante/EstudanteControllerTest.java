@@ -1,4 +1,4 @@
-package com.psoft.arena.controller;
+package com.psoft.arena.estudante;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
