@@ -126,23 +126,23 @@ class SubmissaoIntegrationTest {
   }
 
   @Test
-  void recusaSubmissaoEmAtividadeConcluida422() throws Exception {
+  void recusaSubmissaoEmAtividadeConcluida409() throws Exception {
     daTurmaDeAna.encerrar();
     atividades.save(daTurmaDeAna);
 
     mvc.perform(multipart("/api/atividades/" + daTurmaDeAna.getId() + "/submissoes")
         .file(arquivoJava("Solucao.java", "public class Solucao {}"))
         .param("estudanteId", ana.getId().toString()))
-        .andExpect(status().isUnprocessableEntity())
+        .andExpect(status().isConflict())
         .andExpect(jsonPath("$.erro").value("Esta atividade está encerrada e não aceita novas submissões."));
   }
 
   @Test
-  void recusaSubmissaoAposPrazo422() throws Exception {
+  void recusaSubmissaoAposPrazo409() throws Exception {
     mvc.perform(multipart("/api/atividades/" + atividadeExpirada.getId() + "/submissoes")
         .file(arquivoJava("Solucao.java", "public class Solucao {}"))
         .param("estudanteId", ana.getId().toString()))
-        .andExpect(status().isUnprocessableEntity())
+        .andExpect(status().isConflict())
         .andExpect(jsonPath("$.erro").value("Esta atividade está encerrada e não aceita novas submissões."));
   }
 

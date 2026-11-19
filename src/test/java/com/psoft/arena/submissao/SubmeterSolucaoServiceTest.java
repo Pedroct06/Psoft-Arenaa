@@ -15,6 +15,8 @@ import com.psoft.arena.repository.SubmissaoRepository;
 import com.psoft.arena.service.AtividadeService;
 import com.psoft.arena.service.SubmeterSolucaoService;
 import com.psoft.arena.service.TurmaEstudanteService;
+import com.psoft.arena.exception.AcessoNegadoException;
+import com.psoft.arena.exception.ConflitoException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -164,7 +166,7 @@ class SubmeterSolucaoServiceTest {
   void recusaSubmissaoEmAtividadeConcluida() {
     when(atividadeService.buscarEntidadePorId(10L)).thenReturn(atividadeConcluida);
 
-    assertThrows(IllegalStateException.class,
+    assertThrows(ConflitoException.class,
         () -> service.executar(1L, 10L, "Solucao.java", "public class Solucao {}"));
 
     verify(submissaoRepository, never()).save(any());
@@ -174,7 +176,7 @@ class SubmeterSolucaoServiceTest {
   void recusaSubmissaoAposPrazo() {
     when(atividadeService.buscarEntidadePorId(10L)).thenReturn(atividadeExpirada);
 
-    assertThrows(IllegalStateException.class,
+    assertThrows(ConflitoException.class,
         () -> service.executar(1L, 10L, "Solucao.java", "public class Solucao {}"));
 
     verify(submissaoRepository, never()).save(any());
@@ -185,7 +187,7 @@ class SubmeterSolucaoServiceTest {
     when(atividadeService.buscarEntidadePorId(10L)).thenReturn(atividadeAberta);
     when(turmaEstudanteService.listar("T1")).thenReturn(List.of(ana));
 
-    assertThrows(SecurityException.class,
+    assertThrows(AcessoNegadoException.class,
         () -> service.executar(2L, 10L, "Solucao.java", "public class Solucao {}"));
 
     verify(submissaoRepository, never()).save(any());

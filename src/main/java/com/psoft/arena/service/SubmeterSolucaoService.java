@@ -1,5 +1,7 @@
 package com.psoft.arena.service;
 
+import com.psoft.arena.exception.AcessoNegadoException;
+import com.psoft.arena.exception.ConflitoException;
 import org.springframework.context.ApplicationEventPublisher;
 import com.psoft.arena.dto.SubmissaoResponseDTO;
 import com.psoft.arena.model.Atividade;
@@ -43,11 +45,11 @@ public class SubmeterSolucaoService {
         Atividade atividade = atividadeService.buscarEntidadePorId(atividadeId);
 
         if (!atividade.aceitaSubmissoes(OffsetDateTime.now(clock))) {
-            throw new IllegalStateException("Esta atividade está encerrada e não aceita novas submissões.");
+            throw new ConflitoException("Esta atividade está encerrada e não aceita novas submissões.");
         }
 
         if (!estudanteEstaEmTurma(atividade.getTurma().getCodigo(), estudanteId)) {
-            throw new SecurityException("Estudante não pertence à turma desta atividade.");
+            throw new AcessoNegadoException("Estudante não pertence à turma desta atividade.");
         }
 
         int totalAnterior = submissaoRepository.countByEstudanteIdAndAtividadeId(estudanteId, atividadeId);
