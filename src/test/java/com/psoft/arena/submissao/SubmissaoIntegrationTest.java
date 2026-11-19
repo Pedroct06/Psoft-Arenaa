@@ -48,9 +48,8 @@ class SubmissaoIntegrationTest {
 
   @BeforeEach
   void preparar() {
-    submissoes.deleteAll();
-    atividades.deleteAll();
-
+    // Sem deleteAll: a fila ainda pode estar processando a submissão do teste anterior.
+    // Cada teste usa matrículas e turmas novas, então os dados não se misturam.
     ana = estudantes.save(new Estudante("Ana", UUID.randomUUID().toString(), "ana@x.com"));
     bia = estudantes.save(new Estudante("Bia", UUID.randomUUID().toString(), "bia@x.com"));
 
@@ -153,6 +152,17 @@ class SubmissaoIntegrationTest {
         .param("estudanteId", bia.getId().toString()))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.erro").value("Estudante não pertence à turma desta atividade."));
+  }
+
+  @Test
+  void recusaEstudanteInexistente403() throws Exception {
+    mvc.perform(multipart("/api/atividades/" + daTurmaDeAna.getId() + "/submissoes")
+        .file(arquivoJava("Solucao.java", "public class Solucao {}"))
+        .param("estudanteId", "999999"))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.erro").value("Estudante não pertence à turma desta atividade."));
+
+    assertEquals(0, submissoes.countByEstudanteIdAndAtividadeId(999999L, daTurmaDeAna.getId()));
   }
 
   @Test
